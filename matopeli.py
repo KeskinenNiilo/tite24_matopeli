@@ -41,6 +41,14 @@ class SnakeGame(QGraphicsView):
                 self.start_game()
 
         key = event.key()
+
+            # starting game by button
+        if not self.game_started:
+            if key == event.key():
+                self.game_started = True
+                self.scene().clear()
+                self.start_game()
+
         if key in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
             # päivitetään suunta vain jos se ei ole vastakkainen valitulle suunnalle
             if key == Qt.Key_Left and self.direction != Qt.Key_Right:
@@ -78,6 +86,14 @@ class SnakeGame(QGraphicsView):
 
         self.print_game()
 
+        # add food
+    def spawn_food(self):
+        while True:
+            x = random.randint(0, GRID_WIDTH - 1)
+            y = random.randint(0, GRID_HEIGHT - 1)
+            if (x, y) not in self.snake:
+                return x, y
+
     def print_game(self):
         self.scene().clear()
 
@@ -98,6 +114,10 @@ class SnakeGame(QGraphicsView):
         self.direction = Qt.Key_Right
         self.snake = [(5, 5), (5, 6), (5, 7)]
         self.timer.start(300)
+        self.food = self.spawn_food()
+        # for score calculation
+        self.score = 0
+
 
 def main():
     app = QApplication(sys.argv)
