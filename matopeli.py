@@ -32,7 +32,7 @@ class SnakeGame(QGraphicsView):
         start_text.setPos(text_x, GRID_HEIGHT * CELL_SIZE / 2)
 
     def keyPressEvent(self, event):
-
+        key = event.key()
         # starting game by button
         if not self.game_started:
             if key == event.key():
@@ -40,7 +40,7 @@ class SnakeGame(QGraphicsView):
                 self.scene().clear()
                 self.start_game()
 
-        key = event.key()
+        
 
             # starting game by button
         if not self.game_started:
@@ -80,11 +80,36 @@ class SnakeGame(QGraphicsView):
         elif self.direction == Qt.Key_Down:
             new_head = (head_x, head_y + 1)
 
+         # board limits
+        if new_head in self.snake or not (0 <= new_head[0] < GRID_WIDTH) or not (0 <= new_head[1] < GRID_HEIGHT):
+            self.timer.stop()
+            game_over_text = self.scene().addText("Game Over. Press any key to start new game.", QFont("Arial", 24))
+            text_width = game_over_text.boundingRect().width()
+            text_x = (self.width() - text_width) / 2
+            game_over_text.setPos(text_x, GRID_HEIGHT * CELL_SIZE / 2)
+            return
+
         self.snake.insert(0, new_head)
-        
-        self.snake.pop()
+
+        if new_head == self.food:
+            self.score += 1
+                # for levels
+        if self.score == self.level_limit:
+            self.level_limit += 5
+            self.timer_delay *= 0.9
+            self.timer.setInterval(self.timer_delay)
+
+            self.food = self.spawn_food()
+        else:
+            self.snake.pop()
 
         self.print_game()
+
+    def init_screen(self):
+        start_text = self.scene().addText("Press any key to start", QFont("Arial", 18))
+        text_width = start_text.boundingRect().width()
+        text_x = (self.width() - text_width) / 5
+        start_text.setPos(text_x, GRID_HEIGHT * CELL_SIZE / 2)
 
         # add food
     def spawn_food(self):
@@ -110,13 +135,17 @@ class SnakeGame(QGraphicsView):
     def start_game(self):
         # for score calculation
         self.score = 0
-        self.food = self.spawn_food()
         self.direction = Qt.Key_Right
         self.snake = [(5, 5), (5, 6), (5, 7)]
         self.timer.start(300)
         self.food = self.spawn_food()
         # for score calculation
         self.score = 0
+        # for levels
+        self.level_limit = 5
+        self.timer_delay = 300
+
+        self.timer.start(self.timer_delay)
 
 
 def main():
