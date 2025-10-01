@@ -4,6 +4,8 @@ import random
 from PySide6.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QMenu
 from PySide6.QtGui import QPainter, QPen, QBrush, QFont
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtMultimedia import QSoundEffect
+from PySide6.QtCore import QUrl
 
 # vakiot
 CELL_SIZE = 20
@@ -20,6 +22,14 @@ class SnakeGame(QGraphicsView):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_game)
+
+        self.eat_sound = QSoundEffect()
+        self.eat_sound.setSource(QUrl.fromLocalFile("sounds/eat.wav"))
+        self.eat_sound.setVolume(0.5)  # volume: 0.0 - 1.0
+
+        self.game_over_sound = QSoundEffect()
+        self.game_over_sound.setSource(QUrl.fromLocalFile("sounds/game_over.wav"))
+        self.game_over_sound.setVolume(0.7)
         
         # starting game by button
         self.game_started = False
@@ -84,6 +94,7 @@ class SnakeGame(QGraphicsView):
         if new_head in self.snake or not (0 <= new_head[0] < GRID_WIDTH) or not (0 <= new_head[1] < GRID_HEIGHT):
             self.timer.stop()
             game_over_text = self.scene().addText("Game Over. \nPress any key to start new game.", QFont("Arial", 12))
+            self.game_over_sound.play()
             text_width = game_over_text.boundingRect().width()
             text_x = (self.width() - text_width) / 2
             game_over_text.setPos(text_x, GRID_HEIGHT * CELL_SIZE / 2)
@@ -94,6 +105,7 @@ class SnakeGame(QGraphicsView):
 
         if new_head == self.food:
             self.score += 1
+            self.eat_sound.play()
                 # for levels
         if self.score == self.level_limit:
             self.level_limit += 5
