@@ -21,10 +21,26 @@ class SnakeGame(QGraphicsView):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_game)
         
-        self.start_game()
+        # starting game by button
+        self.game_started = False
+        self.init_screen()
+
+    def init_screen(self):
+        start_text = self.scene().addText("Press any key to start", QFont("Arial", 18))
+        text_width = start_text.boundingRect().width()
+        text_x = (self.width() - text_width) / 5
+        start_text.setPos(text_x, GRID_HEIGHT * CELL_SIZE / 2)
 
     def keyPressEvent(self, event):
         key = event.key()
+
+            # starting game by button
+        if not self.game_started:
+            if key == event.key():
+                self.game_started = True
+                self.scene().clear()
+                self.start_game()
+
         if key in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down):
             # päivitetään suunta vain jos se ei ole vastakkainen valitulle suunnalle
             if key == Qt.Key_Left and self.direction != Qt.Key_Right:
@@ -54,8 +70,20 @@ class SnakeGame(QGraphicsView):
 
         self.print_game()
 
+        # add food
+    def spawn_food(self):
+        while True:
+            x = random.randint(0, GRID_WIDTH - 1)
+            y = random.randint(0, GRID_HEIGHT - 1)
+            if (x, y) not in self.snake:
+                return x, y
+
     def print_game(self):
         self.scene().clear()
+
+        # print food
+        fx, fy = self.food
+        self.scene().addRect(fx * CELL_SIZE, fy * CELL_SIZE, CELL_SIZE, CELL_SIZE, QPen(Qt.black), QBrush(Qt.black))
 
         for segment in self.snake:
             x, y = segment
@@ -65,6 +93,10 @@ class SnakeGame(QGraphicsView):
         self.direction = Qt.Key_Right
         self.snake = [(5, 5), (5, 6), (5, 7)]
         self.timer.start(300)
+        self.food = self.spawn_food()
+        # for score calculation
+        self.score = 0
+
 
 def main():
     app = QApplication(sys.argv)
